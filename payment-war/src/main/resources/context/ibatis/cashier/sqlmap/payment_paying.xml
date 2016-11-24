@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="PayingDao">
+    <typeAlias alias="PayingEntity" type="cloud.dispatcher.gateway.pay.cashier.domain.paying.bean.entity.PayingEntity" />
+    <resultMap id="PayingEntityResult" class="PayingEntity">
+        <result property="id" column="id" />
+        <result property="createdAt" column="created_at" javaType="date" jdbcType="timestamp" />
+        <result property="updatedAt" column="updated_at" javaType="date" jdbcType="timestamp" />
+        <result property="status" column="status" />
+        <result property="usrAccount" column="usr_account" />
+        <result property="usrUid" column="usr_uid" />
+        <result property="usrPayment" column="usr_payment" />
+        <result property="appOrderSource" column="app_order_source" />
+        <result property="appOrderNumber" column="app_order_number" />
+        <result property="appOrderExpire" column="app_order_expire" />
+        <result property="appOrderNotify" column="app_order_notify" />
+        <result property="appOrderReturn" column="app_order_return" />
+        <result property="appOrderFee" column="app_order_fee" />
+        <result property="appOrderItem" column="app_order_item" />
+        <result property="oppGatewayFeedback" column="opp_gateway_feedback" />
+        <result property="oppGatewayType" column="opp_gateway_type" />
+        <result property="oppGatewayAuth" column="opp_gateway_auth" />
+        <result property="oppGatewayCode" column="opp_gateway_code" />
+    </resultMap>
+
+    <update id="updateOnCommit" parameterClass="PayingEntity">
+        <![CDATA[
+        UPDATE `$tableName$` SET `status` = 2, `opp_gateway_type` = #oppGatewayType# 
+        WHERE `id` = #id# LIMIT 1;
+        ]]>
+    </update>
+
+    <update id="updateOnNotify" parameterClass="PayingEntity">
+        <![CDATA[
+        UPDATE `$tableName$` SET `status` = #status#, `usr_payment` = #usrPayment#,
+        `opp_gateway_code` = #oppGatewayCode#, `opp_gateway_type` = #oppGatewayType#,
+        `opp_gateway_feedback` = #oppGatewayFeedback#
+        WHERE `id` = #id# AND `status` <= #status# LIMIT 1;
+        ]]>
+    </update>
+    
+    <update id="updateOnReturn" parameterClass="PayingEntity">
+        <![CDATA[
+        UPDATE `$tableName$` SET `status` = #status#, `usr_payment` = #usrPayment#, 
+        `opp_gateway_code` = #oppGatewayCode#, `opp_gateway_type` = #oppGatewayType#, 
+        `opp_gateway_feedback` = #oppGatewayFeedback#
+        WHERE `id` = #id# AND status <= #status# LIMIT 1;
+        ]]>
+    </update>
+
+    <select id="select" parameterClass="Map" resultMap="PayingEntityResult">
+        <![CDATA[
+        SELECT * FROM `$tableName$` WHERE `id` = #id# LIMIT 1;
+        ]]>
+    </select>
+
+    <insert id="insert" parameterClass="PayingEntity">
+        <![CDATA[
+        INSERT INTO `$tableName$` (`id`, `created_at`, `updated_at`, `status`, `usr_account`, 
+        `usr_uid`, `usr_payment`, `app_order_source`, `app_order_number`, `app_order_expire`, 
+        `app_order_notify`, `app_order_return`, `app_order_fee`, `app_order_item`, 
+        `opp_gateway_type`, `opp_gateway_auth`, `opp_gateway_code`, `opp_gateway_feedback`) VALUES (
+        #id#, #createdAt#, #updatedAt#, 1, #usrAccount#, #usrUid#, '', #appOrderSource#, 
+        #appOrderNumber#, #appOrderExpire#, #appOrderNotify#, #appOrderReturn#, #appOrderFee#, 
+        #appOrderItem#, 0, #oppGatewayAuth#, '', '');
+        ]]>
+    </insert>
+</sqlMap>

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="viewHelp" class="cloud.dispatcher.gateway.pay.cashier.web.bean.ViewHelp">
+        <property name="versionNumber">
+            <value>${payment.view.helper.version}</value>
+        </property>
+        <property name="cssRootURI" value="${payment.view.helper.uri.css}" />
+        <property name="imgRootURI" value="${payment.view.helper.uri.img}" />
+        <property name="scriptRootURI">
+            <value>${payment.view.helper.uri.script}</value>
+        </property>
+        <property name="domain">
+            <value>${payment.domain}</value>
+        </property>
+    </bean>
+
+    <bean id="viewUtil" class="cloud.dispatcher.gateway.pay.cashier.utils.ViewUtil">
+        <property name="XMemcachedClient" ref="xMemcachedClient" />
+        <property name="domain" value="${payment.domain}" />
+        <property name="appId" value="${openapi.appid}" />
+        <property name="token" value="${openapi.token}" />
+        <property name="cache" value="${openapi.cache}" />
+        <property name="httpClientFactory" ref="httpClientFactory" />
+    </bean>
+
+    <bean id="commonPaymentDao" abstract="true">
+        <property name="xMemcachedClient" ref="xMemcachedClient" />
+        <property name="sqlMapClient" ref="paymentSqlMapClient" />
+    </bean>
+
+    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.paying.dao.impl.PayingDaoImpl" id="simplePayingDao"
+          parent="commonPaymentDao" />
+
+    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.refund.dao.impl.RefundDaoImpl" id="simpleRefundDao"
+          parent="commonPaymentDao" />
+
+    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.logger.dao.impl.LoggerDaoImpl" id="simpleLoggerDao"
+          parent="commonPaymentDao" />
+
+    <bean id="simplePayingService" class="cloud.dispatcher.gateway.pay.cashier.domain.paying.service.impl.PayingServiceImpl">
+        <property name="simpleNotifierExecutor" ref="simpleNotifierExecutor" />
+        <property name="httpClientFactory" ref="httpClientFactory" />
+        <property name="simpleLoggerDao" ref="simpleLoggerDao" />
+        <property name="simplePayingDao" ref="simplePayingDao" />
+        <property name="simpleWapOppAssistant" ref="SimpleWapOppAssistant" />
+        <property name="simpleWebOppAssistant" ref="simpleWebOppAssistant" />
+        <property name="simpleAppOppAssistant" ref="simpleAppOppAssistant" />
+    </bean>
+
+    <bean id="simpleRefundService" class="cloud.dispatcher.gateway.pay.cashier.domain.refund.service.impl.RefundServiceImpl">
+        <property name="simpleNotifierExecutor" ref="simpleNotifierExecutor" />
+        <property name="httpClientFactory" ref="httpClientFactory" />
+        <property name="simpleLoggerDao" ref="simpleLoggerDao" />
+        <property name="simpleRefundDao" ref="simpleRefundDao" />
+        <property name="simplePayingDao" ref="simplePayingDao" />
+        <property name="simpleWapOppAssistant" ref="SimpleWapOppAssistant" />
+        <property name="simpleWebOppAssistant" ref="simpleWebOppAssistant" />
+        <property name="simpleAppOppAssistant" ref="simpleAppOppAssistant" />
+    </bean>
+
+    <bean id="simpleLoggerService" class="cloud.dispatcher.gateway.pay.cashier.domain.logger.service.impl.LoggerServiceImpl">
+        <property name="simpleLoggerDao" ref="simpleLoggerDao" />
+    </bean>
+
+    <bean id="httpClientFactory" class="cloud.dispatcher.gateway.pay.cashier.http.HttpClientFactory"
+          destroy-method="destroy" init-method="initialize">
+        <property name="timeout" value="3" />
+        <property name="poolMax" value="5" />
+    </bean>
+
+    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.opp.weixin.support.SimpleAccessTokenHolder"
+          id="simpleAccessTokenHolder">
+        <property name="httpClientFactory" ref="httpClientFactory" />
+        <property name="xMemcachedClient" ref="xMemcachedClient" />
+    </bean>
+
+    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.opp.weixin.support.SimpleJsApiTicketHolder"
+          id="simpleJsApiTicketHolder">
+        <property name="httpClientFactory" ref="httpClientFactory" />
+        <property name="xMemcachedClient" ref="xMemcachedClient" />
+    </bean>
+
+    <bean id="simpleWebOppAssistant" class="java.util.HashMap">
+        <constructor-arg index="0">
+            <map key-type="java.lang.Integer">
+                <entry key="1">
+                    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.opp.alipay.AlipayWebAssistant">
+                        <property name="httpClientFactory" ref="httpClientFactory" />
+                        <property name="oppPayingNotifyURL" value="${web.alipay.paying.notify.uri}" />
+                        <property name="oppPayingReturnURL" value="${web.alipay.paying.return.uri}" />
+                        <property name="oppRefundNotifyURL" value="${web.alipay.refund.notify.uri}" />
+                        <property name="expiredTimeMap">
+                            <map>
+                                <entry key="225d12def2d9646564a515ddc2906d9e" value="15m" />
+                            </map>
+                        </property>
+                    </bean>
+                </entry>
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <bean id="simpleAppOppAssistant" class="java.util.HashMap">
+        <constructor-arg index="0">
+            <map key-type="java.lang.Integer">
+                <entry key="1">
+                    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.opp.alipay.AlipayAppAssistant">
+                        <property name="httpClientFactory" ref="httpClientFactory" />
+                        <property name="oppPayingNotifyURL" value="${app.alipay.paying.notify.uri}" />
+                        <property name="oppPayingReturnURL" value="${app.alipay.paying.return.uri}" />
+                        <property name="oppRefundNotifyURL" value="${web.alipay.refund.notify.uri}" />
+                        <property name="expiredTimeMap">
+                            <map>
+                                <entry key="225d12def2d9646564a515ddc2906d9e" value="15m" />
+                            </map>
+                        </property>
+                    </bean>
+                </entry>
+                <entry key="2">
+                    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.opp.weixin.WeixinAppAssistant">
+                        <property name="simpleAccessTokenHolder" ref="simpleAccessTokenHolder" />
+                        <property name="certFileRootDirectory" value="${certificate.weixin.directory}" />
+                        <property name="simpleNotifierExecutor" ref="simpleNotifierExecutor" />
+                        <property name="httpClientFactory" ref="httpClientFactory" />
+                        <property name="oppPayingNotifyURL" value="${wap.weixin.paying.notify.uri}" />
+                        <property name="oppPayingReturnURL" value="${wap.weixin.paying.return.uri}" />
+                        <property name="oppRefundNotifyURL" value="${wap.weixin.refund.notify.uri}" />
+                    </bean>
+                </entry>
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <bean id="SimpleWapOppAssistant" class="java.util.HashMap">
+        <constructor-arg index="0">
+            <map key-type="java.lang.Integer">
+                <entry key="1">
+                    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.opp.alipay.AlipayWapAssistant">
+                        <property name="httpClientFactory" ref="httpClientFactory" />
+                        <property name="oppPayingNotifyURL" value="${wap.alipay.paying.notify.uri}" />
+                        <property name="oppPayingReturnURL" value="${wap.alipay.paying.return.uri}" />
+                        <property name="oppRefundNotifyURL" value="${wap.alipay.refund.notify.uri}" />
+                        <property name="expiredTimeMap">
+                            <map>
+                                <entry key="225d12def2d9646564a515ddc2906d9e" value="15" />
+                            </map>
+                        </property>
+                    </bean>
+                </entry>
+                <entry key="3">
+                    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.opp.weixin.WeixinWapAssistant">
+                        <property name="simpleAccessTokenHolder" ref="simpleAccessTokenHolder" />
+                        <property name="simpleJsApiTicketHolder" ref="simpleJsApiTicketHolder" />
+                        <property name="domain" value="${payment.domain}" />
+                        <property name="certFileRootDirectory" value="${certificate.weixin.directory}" />
+                        <property name="simpleNotifierExecutor" ref="simpleNotifierExecutor" />
+                        <property name="httpClientFactory" ref="httpClientFactory" />
+                        <property name="oppPayingNotifyURL" value="${wap.wxmpay.paying.notify.uri}" />
+                        <property name="oppPayingReturnURL" value="${wap.wxmpay.paying.return.uri}" />
+                        <property name="oppRefundNotifyURL" value="${wap.wxmpay.refund.notify.uri}" />
+                    </bean>
+                </entry>
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <bean id="simpleRefundActionQueue" class="java.util.concurrent.ConcurrentLinkedQueue" />
+
+    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.notifier.exectuor.support.SimpleNotifierExecutor"
+          id="simpleNotifierExecutor" init-method="initialize" destroy-method="destroy">
+        <property name="XMemcachedClient" ref="xMemcachedClient" />
+        <property name="httpClientFactory" ref="httpClientFactory" />
+    </bean>
+
+    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.refund.executor.support.SimpleRefundProducer"
+          id="simpleRefundProducer" init-method="initialize" destroy-method="destroy">
+        <property name="serverPoolConfig" value="${payment.server.pool}" />
+        <property name="queue" ref="simpleRefundActionQueue" />
+        <property name="simpleRefundService" ref="simpleRefundService" />
+    </bean>
+
+    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.refund.executor.support.SimpleRefundConsumer"
+          id="simpleRefundConsumer" init-method="initialize" destroy-method="destroy">
+        <property name="threadPoolMax" value="${payment.refund.executor.poolsize}" />
+        <property name="queue" ref="simpleRefundActionQueue" />
+        <property name="simpleRefundService" ref="simpleRefundService"/>
+    </bean>
+</beans>

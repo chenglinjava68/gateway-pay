@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.paying.thrift.support.SimpleThriftPayingAPI"
+          id="simpleThriftPayingAPI">
+        <property name="simplePayingService" ref="simplePayingService" />
+    </bean>
+
+    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.refund.thrift.support.SimpleThriftRefundAPI"
+          id="simpleThriftRefundAPI">
+        <property name="simpleRefundService" ref="simpleRefundService" />
+        <property name="simplePayingService" ref="simplePayingService" />
+    </bean>
+
+    <bean class="cloud.dispatcher.gateway.pay.thrift.support.SimpleThriftHeartBeatAPI" id="simpleThriftHeartBeatAPI" />
+
+    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.paying.thrift.listener.ThriftPayingServerListener"
+          id="simpleThriftPayingListener" init-method="initialize" destroy-method="destroy">
+        <property name="simpleThriftPayingAPI" ref="simpleThriftPayingAPI" />
+        <property name="listenOnPort" value="${payment.thrift.paying.listen.port}" />
+    </bean>
+
+    <bean class="cloud.dispatcher.gateway.pay.cashier.domain.refund.thrift.listener.ThriftRefundServerListener"
+          id="simpleThriftRefundListener" init-method="initialize" destroy-method="destroy">
+        <property name="simpleThriftRefundAPI" ref="simpleThriftRefundAPI" />
+        <property name="listenOnPort" value="${payment.thrift.refund.listen.port}" />
+    </bean>
+
+    <bean class="cloud.dispatcher.gateway.pay.thrift.listener.ThriftHeartBeatServerListener" init-method="initialize"
+          destroy-method="destroy" id="simpleThriftHeartBeatApiListener">
+        <property name="simpleThriftHeartBeatAPI" ref="simpleThriftHeartBeatAPI" />
+        <property name="listenOnPort" value="${payment.thrift.heartbeat.listen.port}" />
+    </bean>
+</beans>

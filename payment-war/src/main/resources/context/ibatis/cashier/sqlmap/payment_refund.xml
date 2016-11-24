@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="RefundDao">
+    <typeAlias alias="RefundEntity" type="cloud.dispatcher.gateway.pay.cashier.domain.refund.bean.entity.RefundEntity" />
+    <resultMap id="RefundEntityResult" class="RefundEntity">
+        <result property="payingId" column="paying_id" />
+        <result property="id" column="id" />
+        <result property="createdAt" column="created_at" javaType="date" jdbcType="timestamp" />
+        <result property="updatedAt" column="updated_at" javaType="date" jdbcType="timestamp" />
+        <result property="status" column="status" />
+        <result property="usrAccount" column="usr_account" />
+        <result property="usrUid" column="usr_uid" />
+        <result property="usrPayment" column="usr_payment" />
+        <result property="appOrderSource" column="app_order_source" />
+        <result property="appOrderNumber" column="app_order_number" />
+        <result property="appOrderNotify" column="app_order_notify" />
+        <result property="oppGatewayFeedback" column="opp_gateway_feedback" />
+        <result property="appOrderFee" column="app_order_fee" />
+        <result property="oppGatewayCode" column="opp_gateway_code" />
+        <result property="oppGatewayType" column="opp_gateway_type" />
+    </resultMap>
+
+    <insert id="insert" parameterClass="RefundEntity">
+        <![CDATA[
+        INSERT INTO `$tableName$` (`paying_id`, `created_at`, `updated_at`, `status`, `usr_account`,
+        `usr_uid`, `usr_payment`, `app_order_source`, `app_order_number`, `app_order_notify`,
+        `app_order_fee`, `opp_gateway_type`, `opp_gateway_code`, `opp_gateway_feedback`) VALUES (
+        #payingId#, #createdAt#, #updatedAt#, 1, #usrAccount#, #usrUid#, #usrPayment#, #appOrderSource#,
+        #appOrderNumber#, #appOrderNotify#, #appOrderFee#, #oppGatewayType#, '', '');
+        ]]>
+        <selectKey resultClass="long" keyProperty="id">
+            SELECT LAST_INSERT_ID() AS id;
+        </selectKey>
+    </insert>
+
+    <select id="selectList" parameterClass="Map" resultMap="RefundEntityResult">
+        <![CDATA[
+        SELECT * FROM `$tableName$` WHERE `paying_id` = #payingId#;
+        ]]>
+    </select>
+
+    <select id="selectView" parameterClass="Map" resultMap="RefundEntityResult">
+        <![CDATA[
+        SELECT * FROM `$tableName$` WHERE `id` = #refundId# AND `paying_id` = #payingId# LIMIT 1;
+        ]]>
+    </select>
+
+    <update id="updateOnNotify" parameterClass="RefundEntity">
+        <![CDATA[
+        UPDATE `$tableName$` SET `status` = #status#, `opp_gateway_code` = #oppGatewayCode#,
+        `opp_gateway_feedback` = #oppGatewayFeedback#
+        WHERE `id` = #id# AND `status` <= #status# LIMIT 1;
+        ]]>
+    </update>
+
+    <update id="updateOnCommit" parameterClass="RefundEntity">
+        <![CDATA[
+        UPDATE `$tableName$` SET status = 2 WHERE id = #id# AND status = 1 LIMIT 1;
+        ]]>
+    </update>
+
+    <update id="updateOnRollback" parameterClass="RefundEntity">
+        <![CDATA[
+        UPDATE `$tableName$` SET status = 1 WHERE id = #id# AND status = 2 LIMIT 1;
+        ]]>
+    </update>
+
+    <select id="selectUnoperating" parameterClass="Map" resultMap="RefundEntityResult">
+        <![CDATA[
+        SELECT * FROM `$tableName$` WHERE status = 1 LIMIT 0, #limit#;
+        ]]>
+    </select>
+</sqlMap>

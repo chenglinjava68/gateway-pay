@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="LoggerDao">
+    <typeAlias alias="LoggerEntity" type="cloud.dispatcher.gateway.pay.cashier.domain.logger.bean.entity.LoggerEntity" />
+    <resultMap id="LoggerEntityResult" class="LoggerEntity">
+        <result property="id" column="id" />
+        <result property="payingId" column="paying_id" />
+        <result property="refundId" column="refund_id" />
+        <result property="status" column="status" />
+        <result property="oppType" column="opp_type" />
+        <result property="oppCode" column="opp_code" />
+        <result property="oppFee" column="opp_fee" />
+        <result property="oppCommit" column="opp_commit" />
+        <result property="oppReturn" column="opp_return" />
+        <result property="oppNotify" column="opp_notify" />
+        <result property="createdAt" column="created_at" javaType="date" jdbcType="timestamp" />
+        <result property="updatedAt" column="updated_at" javaType="date" jdbcType="timestamp" />
+    </resultMap>
+
+    <select id="selectList" parameterClass="Map" resultMap="LoggerEntityResult">
+        <![CDATA[
+        SELECT * FROM `$tableName$` WHERE `paying_id` = #payingId#;
+        ]]>
+    </select>
+
+    <select id="selectView" parameterClass="Map" resultMap="LoggerEntityResult">
+        <![CDATA[
+        SELECT * FROM `$tableName$` WHERE `id` = #id# LIMIT 1;
+        ]]>
+    </select>
+
+    <insert id="insert" parameterClass="LoggerEntity">
+        <![CDATA[
+        INSERT INTO `$tableName$` (`paying_id`, `refund_id`, `status`, `opp_type`, `opp_code`, 
+        `opp_fee`, `opp_commit`, `opp_return`, `opp_notify`, `created_at`, `updated_at`) VALUES (
+        #payingId#, #refundId#, 0, #oppType#, '', #oppFee#, '', '', '', #createdAt#, #updatedAt#);
+        ]]>
+        <selectKey resultClass="long" keyProperty="id">
+            SELECT LAST_INSERT_ID() AS id;
+        </selectKey>
+    </insert>
+
+    <update id="updateOnCommit" parameterClass="LoggerEntity">
+        <![CDATA[
+        UPDATE `$tableName$` SET `opp_commit` = #oppCommit# WHERE `id` = #id# LIMIT 1;
+        ]]>
+    </update>
+
+    <update id="updateOnReturn" parameterClass="LoggerEntity">
+        <![CDATA[
+        UPDATE `$tableName$` SET `opp_code` = #oppCode#, `opp_return` = #oppReturn#, 
+        `status` = #status# WHERE `id` = #id# AND `status` <= #status# LIMIT 1;
+        ]]>
+    </update>
+    
+    <update id="updateOnNotify" parameterClass="LoggerEntity">
+        <![CDATA[
+        UPDATE `$tableName$` SET `opp_code` = #oppCode#, `opp_notify` = #oppNotify#, 
+        `status` = #status# WHERE `id` = #id# AND `status` <= #status# LIMIT 1;
+        ]]>
+    </update>
+</sqlMap>

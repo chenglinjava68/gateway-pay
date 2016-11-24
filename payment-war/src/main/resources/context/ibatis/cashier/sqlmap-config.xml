@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN"
+        "http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+    <settings enhancementEnabled="true" maxTransactions="20" maxRequests="32" maxSessions="10"
+              useStatementNamespaces="true" lazyLoadingEnabled="true"/>
+
+    <sqlMap resource="context/ibatis/cashier/sqlmap/payment_paying.xml"/>
+    <sqlMap resource="context/ibatis/cashier/sqlmap/payment_refund.xml"/>
+    <sqlMap resource="context/ibatis/cashier/sqlmap/payment_logger.xml"/>
+</sqlMapConfig>
