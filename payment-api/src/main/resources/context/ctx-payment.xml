@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="simplePayingConnectionProvider" class="cloud.dispatcher.gateway.pay.thrift.pool.support.SimpleConnectionProvider">
+        <property name="testOnBorrow" value="${gateway.pay.paying.listen.testOnBorrow}" />
+        <property name="testOnReturn" value="${gateway.pay.paying.listen.testOnReturn}" />
+        <property name="address" value="${gateway.pay.paying.listen.address}" />
+        <property name="port" value="${gateway.pay.paying.listen.port}" />
+        <property name="timeout" value="${gateway.pay.paying.listen.timeout}" />
+        <property name="maxActive" value="${gateway.pay.paying.listen.maxActive}" />
+        <property name="minIdle" value="${gateway.pay.paying.listen.minIdle}" />
+        <property name="maxIdle" value="${gateway.pay.paying.listen.maxIdle}" />
+        <property name="maxWait" value="${gateway.pay.paying.listen.maxWait}" />
+        <property name="testWhileIdle" value="${gateway.pay.paying.listen.testWhileIdle}" />
+    </bean>
+
+    <bean id="simpleRefundConnectionProvider" class="cloud.dispatcher.gateway.pay.thrift.pool.support.SimpleConnectionProvider">
+        <property name="testOnBorrow" value="${gateway.pay.refund.listen.testOnBorrow}" />
+        <property name="testOnReturn" value="${gateway.pay.refund.listen.testOnReturn}" />
+        <property name="address" value="${gateway.pay.refund.listen.address}" />
+        <property name="port" value="${gateway.pay.refund.listen.port}" />
+        <property name="timeout" value="${gateway.pay.refund.listen.timeout}" />
+        <property name="maxActive" value="${gateway.pay.refund.listen.maxActive}" />
+        <property name="minIdle" value="${gateway.pay.refund.listen.minIdle}" />
+        <property name="maxIdle" value="${gateway.pay.refund.listen.maxIdle}" />
+        <property name="maxWait" value="${gateway.pay.refund.listen.maxWait}" />
+        <property name="testWhileIdle" value="${gateway.pay.refund.listen.testWhileIdle}" />
+    </bean>
+
+    <bean id="simplePayingAssistant" class="cloud.dispatcher.gateway.pay.waiter.paying.support.PayingAssistantSupport">
+        <property name="source" value="${gateway.pay.source}" />
+        <property name="connectionProvider" ref="simplePayingConnectionProvider" />
+    </bean>
+
+    <bean id="simpleRefundAssistant" class="cloud.dispatcher.gateway.pay.waiter.refund.support.RefundAssistantSupport">
+        <property name="source" value="${gateway.pay.source}" />
+        <property name="connectionProvider" ref="simpleRefundConnectionProvider" />
+    </bean>
+</beans>
